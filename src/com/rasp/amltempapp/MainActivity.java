@@ -26,7 +26,12 @@ import java.io.OutputStream;
 import java.io.FileOutputStream;
 import android.content.Intent;
 import android.widget.Toast;
-
+import android.util.Log;
+import android.net.Uri;
+import android.os.storage.StorageManager;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 public class MainActivity extends Activity
 {
@@ -41,11 +46,57 @@ public class MainActivity extends Activity
          * function.
          */
         TextView  tv = new TextView(this);
-        tv.setText( "..." );
+        tv.setText( "If you're on android 10 or above and you just granted this app access to android/data, please restart the app\nyou will not see this message later" );
         setContentView(tv);
+        
+        
         //change the path to your things
+        
         File in = new File("/storage/emulated/0/AppProjects/AMLModTemplate/libs/architrcutr/libmodtemplate.so");
         File out = new File("/storage/emulated/0/Android/data/com.modded.app/mods/libmodtemplate.so");
+        boolean allowed=false;
+        
+        
+        // for android q and above
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+        if (!sp.getBoolean("allowed",allowed))
+        {
+            sp.edit().putBoolean("allowed",true).apply();
+            StorageManager sm = (StorageManager) this.getSystemService(Context.STORAGE_SERVICE);
+
+            Intent intent = sm.getPrimaryStorageVolume().createOpenDocumentTreeIntent();
+            //String startDir = "Android";
+            //String startDir = "Download"; // Not choosable on an Android 11 device
+            //String startDir = "DCIM";
+            //String startDir = "DCIM/Camera";  // replace "/", "%2F"
+            //String startDir = "DCIM%2FCamera";
+            // String startDir = "Documents";
+            String startDir = "Android/data";
+
+            Uri uri = intent.getParcelableExtra("android.provider.extra.INITIAL_URI");
+
+            String scheme = uri.toString();
+
+            //Log.d(TAG, "INITIAL_URI scheme: " + scheme);
+
+            scheme = scheme.replace("/root/", "/document/");
+
+            startDir = startDir.replace("/", "%2F");
+
+            scheme += "%3A" + startDir;
+
+            uri = Uri.parse(scheme);
+
+            intent.putExtra("android.provider.extra.INITIAL_URI", uri);
+
+            //Log.d(TAG, "uri: " + uri.toString());
+            Toast.makeText(MainActivity.this,"Grant the app access to this folder",Toast.LENGTH_LONG).show();
+            this.startActivityForResult(intent,1);// Intent.action.REQUEST_ACTION_OPEN_DOCUMENT_TREE);
+
+            return;
+        }}
+        https://stackoverflow.com/questions/67726278/android-11-read-android-data-directory-of-all-apps-without-legacy-request-fil#:~:text=if%20(android.os,REQUEST_ACTION_OPEN_DOCUMENT_TREE)%3B%0A%0A%20%20%20%20%20%20%20%20return%3B%0A%20%20%20%20%7D
         try {
             copy(in,out);
             Intent li = getPackageManager().getLaunchIntentForPackage("com.modded.app");

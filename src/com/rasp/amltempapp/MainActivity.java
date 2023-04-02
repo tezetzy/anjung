@@ -32,6 +32,9 @@ import android.os.storage.StorageManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.os.Build;
+import android.Manifest;
+import android.content.pm.PackageManager;
 
 public class MainActivity extends Activity
 {
@@ -42,8 +45,7 @@ public class MainActivity extends Activity
         super.onCreate(savedInstanceState);
 
         /* Create a TextView and set its content.
-         * the text is retrieved by calling a native
-         * function.
+         
          */
         TextView  tv = new TextView(this);
         tv.setText( "If you're on android 10 or above and you just granted this app access to android/data, please restart the app\nyou will not see this message later" );
@@ -52,10 +54,15 @@ public class MainActivity extends Activity
         
         //change the path to your things
         
-        File in = new File("/storage/emulated/0/AppProjects/AMLModTemplate/libs/architrcutr/libmodtemplate.so");
+        File in = new File("/storage/emulated/0/AppProjects/AMLTemplateApp/libs/architecture/libmodtemplate.so");
         File out = new File("/storage/emulated/0/Android/data/com.modded.app/mods/libmodtemplate.so");
         boolean allowed=false;
         
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+                requestPermissions(new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, 1000);
+			}
+        }
         
         // for android q and above
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);

@@ -2,7 +2,7 @@
     #ifndef DONT_IMPLEMENT_STB
         #define STB_SPRINTF_IMPLEMENTATION
     #endif
-    #include <mod/thirdparty/stb_sprintf.h>
+    #include <jni/mod/thirdparty/stb_sprintf.h>
 
     #define vsnprintf stbsp_vsnprintf
 #endif
@@ -11,7 +11,7 @@
 
 Logger::Logger()
 {
-    m_szTag = "AML Mod";
+    m_szTag = "AbtFixes";
     m_bEnabled = true;
 }
 

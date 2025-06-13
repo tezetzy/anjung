@@ -1,6 +1,6 @@
-#include <mod/amlmod.h>
-#include <mod/logger.h>
-#include <mod/config.h>
+#include <jni/mod/amlmod.h>
+#include <jni/mod/logger.h>
+#include <jni/mod/config.h>
 
 
 extern "C" void OnModLoad()

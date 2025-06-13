@@ -5,12 +5,13 @@
 #include <stdint.h>
 #include <string.h>
 
-#define LOG(...) __android_log_print(ANDROID_LOG_INFO, "JPATCH", __VA_ARGS__)
+#define LOG(...) __android_log_print(ANDROID_LOG_INFO, "ABTFIXES", __VA_ARGS__)
 
-uintptr_t pGTASA = 0;
-void* hGTASA = nullptr;
+uintptr_t pGTASA;
+void* hGTASA;
 
 constexpr float fMagic = 50.0f / 30.0f;
+float* _ms_fTimeStep;
 float* ms_fTimeStep;
 float* ms_fAspectRatio;
 float* ms_fTimeScale;
@@ -32,6 +33,16 @@ enum eWeaponType {
 };
 
 struct CWeapon { int m_eWeaponType; };
+
+struct CVector { float x, y, z; };
+
+struct CPed
+{
+    void* vtable;   // 0x00
+    // ...
+    CVector m_vecPosition; // 0x30
+    // ...
+};
 
 struct CPlayerPed {
     char pad[0x5A0];
@@ -108,7 +119,7 @@ void ControlGunMove_Hook(void* self, CVector2D* vec2D)
 /* --- Entry Point --- */
 __attribute__((constructor)) void lib_main()
 {
-    LOG("JPatch loaded!");
+    LOG("AbtFixes loaded!");
 
     hGTASA = dlopen("libGTASA.so", RTLD_LAZY);
     if (!hGTASA) {
@@ -119,16 +130,17 @@ __attribute__((constructor)) void lib_main()
     pGTASA = (uintptr_t)hGTASA;
     LOG("GTASA base: %p", hGTASA);
 
-    ms_fTimeStep            = (float*)(dlsym(hGTASA, "_ZN6CTimer12ms_fTimeStepE"));
-    m_f3rdPersonCHairMultX  = (float*)(dlsym(hGTASA, "_ZN7CCamera22m_f3rdPersonCHairMultXE"));
-    m_f3rdPersonCHairMultY  = (float*)(dlsym(hGTASA, "_ZN7CCamera22m_f3rdPersonCHairMultYE"));
-    ms_fAspectRatio         = (float*)(dlsym(hGTASA, "_ZN5CDraw15ms_fAspectRatioE"));
-    ms_fTimeScale           = (float*)(dlsym(hGTASA, "_ZN6CTimer13ms_fTimeScaleE"));
-    WorldPlayers            = (CPlayerInfo*)(pGTASA + 0x84E7A8); // Pastikan offset cocok
+    float* a = (float*)dlsym(hGTASA, "_ZN7CCamera22m_f3rdPersonCHairMultXE");
+    m_f3rdPersonCHairMultX = (float*)dlsym(hGTASA, "_ZN7CCamera22m_f3rdPersonCHairMultXE");
+    m_f3rdPersonCHairMultY = (float*)dlsym(hGTASA, "_ZN7CCamera22m_f3rdPersonCHairMultYE");
+    ms_fAspectRatio = (float*)dlsym(hGTASA, "_ZN5CDraw15ms_fAspectRatioE");  // CDraw::ms_fAspectRatio
+    ms_fTimeScale = (float*)dlsym(hGTASA, "_ZN6CTimer13ms_fTimeScaleE");     // CTimer::ms_fTimeScale
+
 
     // Set pointer ke fungsi asli sebelum di-hook
+    _ms_fTimeStep = (float*)(pGTASA + 0x869684);
     _DrawCrosshair = (void(*)())(pGTASA + 0x672880);
-    _ControlGunMove = (void(*)(void*, CVector2D*))(pGTASA + 0x66F9D0);
+    _ControlGunMove = (void(*)(void*, CVector2D*))(pGTASA + 0x3A1220);
 
     HookFunction((uintptr_t)_DrawCrosshair, (void*)DrawCrosshair_Hook);
     HookFunction((uintptr_t)_ControlGunMove, (void*)ControlGunMove_Hook);

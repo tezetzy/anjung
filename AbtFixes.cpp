@@ -5,8 +5,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#define LOG(...) __android_log_print(ANDROID_LOG_INFO, "ABTFIXES", __VA_ARGS__)
-
 uintptr_t pGTASA;
 void* hGTASA;
 
@@ -107,7 +105,7 @@ void DrawCrosshair_Hook()
 }
 
 // Fungsi asli
-void (*_ControlGunMove)(void* self, CVector2D* vec2D);
+/*void (*_ControlGunMove)(void* self, CVector2D* vec2D);
 void ControlGunMove_Hook(void* self, CVector2D* vec2D)
 {
     save = *ms_fTimeStep;
@@ -115,20 +113,12 @@ void ControlGunMove_Hook(void* self, CVector2D* vec2D)
     _ControlGunMove(self, vec2D);
     *ms_fTimeStep = save;
 }
-
+*/
 /* --- Entry Point --- */
 __attribute__((constructor)) void lib_main()
 {
-    LOG("AbtFixes loaded!");
-
     hGTASA = dlopen("libGTASA.so", RTLD_LAZY);
-    if (!hGTASA) {
-        LOG("Failed to load GTASA");
-        return;
-    }
-
     pGTASA = (uintptr_t)hGTASA;
-    LOG("GTASA base: %p", hGTASA);
 
     float* a = (float*)dlsym(hGTASA, "_ZN7CCamera22m_f3rdPersonCHairMultXE");
     m_f3rdPersonCHairMultX = (float*)dlsym(hGTASA, "_ZN7CCamera22m_f3rdPersonCHairMultXE");
@@ -140,10 +130,9 @@ __attribute__((constructor)) void lib_main()
     // Set pointer ke fungsi asli sebelum di-hook
     _ms_fTimeStep = (float*)(pGTASA + 0x869684);
     _DrawCrosshair = (void(*)())(pGTASA + 0x672880);
-    _ControlGunMove = (void(*)(void*, CVector2D*))(pGTASA + 0x3A1220);
-
+   /* _ControlGunMove = (void(*)(void*, CVector2D*))(pGTASA + 0x3A1220);
+*/
     HookFunction((uintptr_t)_DrawCrosshair, (void*)DrawCrosshair_Hook);
-    HookFunction((uintptr_t)_ControlGunMove, (void*)ControlGunMove_Hook);
-
-    LOG("Hooks applied!");
+   /* HookFunction((uintptr_t)_ControlGunMove, (void*)ControlGunMove_Hook);
+*/
 }

@@ -1,10 +1,8 @@
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
-LOCAL_CPP_EXTENSION := .cpp .cc
-LOCAL_MODULE    := abtfixes
-LOCAL_SRC_FILES := main.cpp jni/mod/logger.cpp
-LOCAL_CFLAGS += -O2 -mfloat-abi=softfp -DNDEBUG -std=c++17
-LOCAL_C_INCLUDES += ./include
-LOCAL_LDLIBS += -llog
+LOCAL_MODULE := AbtFixesJay
+LOCAL_SRC_FILES := AbtFixes.cpp
+LOCAL_CPPFLAGS += -Wall -std=c++17
+LOCAL_LDLIBS := -llog -ldl
 include $(BUILD_SHARED_LIBRARY)
